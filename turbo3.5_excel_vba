@@ -1,0 +1,44 @@
+Function OpenAI(prompt As String) As String
+
+    Dim url As String, apiKey As String
+    Dim response As Object, json As String, data As String
+
+    apiKey = "YOUR OPENAI API KEY"
+    url = "https://api.openai.com/v1/chat/completions"
+
+    ' Construct the data string with the model, messages, and temperature parameters
+    data = "{""model"":""gpt-3.5-turbo""," & _
+           """messages"":[{""role"":""user"",""content"":""" & prompt & """}]," & _
+           """temperature"":0}"
+
+    Set response = CreateObject("MSXML2.ServerXMLHTTP")
+    response.Open "POST", url, False
+    response.setRequestHeader "Content-Type", "application/json"
+    response.setRequestHeader "Authorization", "Bearer " & apiKey
+    response.Send data
+
+    json = response.responseText
+
+
+    ' Extract content using string functions
+    Dim ContentStart As Integer
+    Dim ContentEnd As Integer
+    Dim Content As String
+    
+    ContentStart = InStr(json, """content"": """) + Len("""content"": """)
+    ContentEnd = ContentStart
+    
+    ' Iterate through the string until we find an unescaped double quote
+    Do While True
+        ContentEnd = InStr(ContentEnd, json, """")
+        ' Check if the double quote is escaped (preceded by a backslash)
+        If Mid(json, ContentEnd - 1, 1) <> "\" Then Exit Do
+        ContentEnd = ContentEnd + 1
+    Loop
+    
+    Content = Mid(json, ContentStart, ContentEnd - ContentStart)
+   
+    OpenAI = Content
+End Function
+
+
